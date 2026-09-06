@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevLab Pro</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
+    <style>
+        /* Все стили как раньше, я оставлю компактно */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #0d1117;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            color: #c9d1d9;
+            min-height: 100vh;
+        }
+        .header {
+            background: #161b22;
+            border-bottom: 1px solid #30363d;
+            padding: 12px 24px;
+            display: none;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .header.active {
+            display: flex;
+        }
+        .header h1 {
+            font-size: 22px;
+            color: #f0f6fc;
+        }
+        .header h1 span {
+            color: #58a6ff;
+        }
+        .header .user-area {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .header .user-area .email {
+            color: #8b949e;
+            font-size: 14px;
+        }
+        .btn {
+            background: #238636;
+            border: none;
+            color: #fff;
+            font-weight: 600;
+            font-size: 14px;
+            padding: 8px 18px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: 0.15s;
+        }
+        .btn:hover {
+            background: #2ea043;
+        }
+        .btn-danger {
+            background: #da3633;
+        }
+        .btn-danger:hover {
+            background: #f85149;
+        }
+        .btn-secondary {
+            background: #21262d;
+            color: #c9d1d9;
+        }
+        .btn-secondary:hover {
+            background: #30363d;
+        }
+        .btn-small {
+            padding: 4px 10px;
+            font-size: 12px;
+        }
+        .auth-container {
+            max-width: 400px;
+            margin: 60px auto;
+            background: #161b22;
+            padding: 32px;
+            border-radius: 16px;
+            border: 1px solid #30363d;
+            text-align: center;
+        }
+        .auth-container h2 {
+            color: #f0f6fc;
+            margin-bottom: 8px;
+        }
+        .auth-container p {
+            color: #8b949e;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        .auth-container input {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: 1px solid #30363d;
+            background: #0d1117;
+            color: #f0f6fc;
+            font-size: 15px;
+            margin-bottom: 12px;
+        }
+        .auth-container input:focus {
+            outline: none;
+            border-color: #58a6ff;
+        }
+        .auth-container .btn {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+        }
+        .switch-link {
+            color: #58a6ff;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 16px;
+            display: inline-block;
+        }
+        .switch-link:hover {
+            text-decoration: underline;
+        }
+        .auth-msg {
+            font-size: 13px;
+            margin-top: 10px;
+            min-height: 20px;
+        }
+        .auth-msg.error {
+            color: #f85149;
+        }
+        .auth-msg.success {
+            color: #3fb950;
+        }
+        .hidden {
+            display: none !important;
+        }
+        .workspace {
+            display: none;
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .workspace.active {
+            display: block;
+        }
+        .tabs {
+            display: flex;
+            gap: 6px;
+            border-bottom: 1px solid #30363d;
+            padding-bottom: 10px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        .tabs .tab {
+            background: #21262d;
+            padding: 8px 18px;
+            border-radius: 6px 6px 0 0;
+            cursor: pointer;
+            font-size: 14px;
+            color: #8b949e;
+            transition: 0.15s;
+        }
+        .tabs .tab:hover {
+            background: #30363d;
+            color: #f0f6fc;
+        }
+        .tabs .tab.active {
+            background: #0d1117;
+            color: #f0f6fc;
+            border: 1px solid #30363d;
+            border-bottom: none;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .ide-layout {
+            display: flex;
+            gap: 16px;
+            min-height: 500px;
+        }
+        .file-tree {
+            width: 280px;
+            min-width: 200px;
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 10px;
+            padding: 12px;
+            overflow-y: auto;
+            max-height: 600px;
+        }
+        .file-tree .tree-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .file-tree .tree-header .btn {
+            padding: 4px 10px;
+            font-size: 12px;
+        }
+        .file-tree .folder {
+            margin-left: 12px;
+            border-left: 1px solid #30363d;
+            padding-left: 8px;
+        }
+        .file-tree .folder-name {
+            color: #58a6ff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 0;
+        }
+        .file-tree .folder-name:hover {
+            color: #79c0ff;
+        }
+        .file-tree .file-item {
+            color: #c9d1d9;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .file-tree .file-item:hover {
+            background: #21262d;
+        }
+        .file-tree .file-item.active {
+            background: #1f3a4a;
+            color: #58a6ff;
+        }
+        .file-tree .file-item .actions {
+            display: flex;
+            gap: 4px;
+        }
+        .file-tree .file-item .actions .btn {
+            padding: 2px 6px;
+            font-size: 10px;
+        }
+        .file-tree .empty-state {
+            color: #8b949e;
+            font-size: 13px;
+            padding: 16px 0;
+            text-align: center;
+        }
+        .editor-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .editor-area .editor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .editor-area .editor-header .info {
+            color: #8b949e;
+            font-size: 14px;
+        }
+        .editor-area .editor-header .info strong {
+            color: #f0f6fc;
+        }
+        .editor-wrapper {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 10px;
+            overflow: hidden;
+            flex: 1;
+        }
+        .editor-wrapper .CodeMirror {
+            height: 450px;
+            font-size: 13px;
+        }
+        .output-console {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 10px;
+            padding: 12px 16px;
+            max-height: 150px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 13px;
+            color: #58a6ff;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .output-console .error {
+            color: #f85149;
+        }
+        .output-console .success {
+            color: #3fb950;
+        }
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-overlay.active {
+            display: flex;
+        }
+        .modal {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 16px;
+            padding: 24px;
+            max-width: 400px;
+            width: 90%;
+        }
+        .modal h3 {
+            color: #f0f6fc;
+            margin-bottom: 12px;
+        }
+        .modal input {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 6px;
+            border: 1px solid #30363d;
+            background: #0d1117;
+            color: #f0f6fc;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+        .modal .btn {
+            width: 100%;
+            padding: 10px;
+        }
+        .modal .btn-secondary {
+            margin-top: 6px;
+        }
+        .project-list .item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            border-bottom: 1px solid #21262d;
+        }
+        .project-list .item:last-child {
+            border-bottom: none;
+        }
+        .project-list .item .name {
+            color: #c9d1d9;
+            cursor: pointer;
+        }
+        .project-list .item .name:hover {
+            color: #58a6ff;
+        }
+        .project-list .item .actions {
+            display: flex;
+            gap: 6px;
+        }
+        .project-list .item .actions .btn {
+            padding: 3px 10px;
+            font-size: 11px;
+        }
+        .empty-state {
+            color: #8b949e;
+            text-align: center;
+            padding: 20px;
+        }
+        .flex-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+        }
+        .flex-row input {
+            flex: 1;
+            min-width: 150px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid #30363d;
+            background: #0d1117;
+            color: #f0f6fc;
+            font-size: 13px;
+        }
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+        }
+        .tool-card {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 10px;
+            padding: 16px;
+        }
+        .tool-card h3 {
+            color: #f0f6fc;
+            font-size: 15px;
+            margin-bottom: 10px;
+        }
+        .tool-card input,
+        .tool-card textarea,
+        .tool-card select {
+            width: 100%;
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid #30363d;
+            background: #0d1117;
+            color: #f0f6fc;
+            font-size: 13px;
+            margin-bottom: 8px;
+            font-family: monospace;
+        }
+        .tool-card textarea {
+            min-height: 60px;
+        }
+        .tool-card .btn {
+            width: 100%;
+            padding: 8px;
+            font-size: 13px;
+        }
+        .tool-card .output {
+            background: #0d1117;
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin-top: 8px;
+            font-family: monospace;
+            font-size: 12px;
+            color: #58a6ff;
+            word-break: break-all;
+            min-height: 30px;
+            border: 1px solid #21262d;
+            max-height: 120px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #161b22;
+            border: 1px solid #30363d;
+            padding: 12px 28px;
+            border-radius: 40px;
+            color: #c9d1d9;
+            font-size: 15px;
+            display: none;
+            z-index: 999;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+            max-width: 90%;
+        }
+        .toast.show {
+            display: block;
+            animation: fadeUp 0.3s ease;
+        }
+        @keyframes fadeUp {
+            0% {
+                opacity: 0;
+                transform: translateX(-50%) translateY(20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+        @media (max-width: 768px) {
+            .ide-layout {
+                flex-direction: column;
+            }
+            .file-tree {
+                width: 100%;
+                max-height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- ШАПКА -->
+    <div class="header" id="header">
+        <h1>⚡ Dev<span>Lab</span> Pro</h1>
+        <div class="user-area">
+            <span class="email" id="userEmail"></span>
+            <button class="btn btn-danger" id="logoutBtn">Выйти</button>
+        </div>
+    </div>
+
+    <!-- АВТОРИЗАЦИЯ -->
+    <div id="authContainer" class="auth-container">
+        <h2 id="authTitle">Вход</h2>
+        <p id="authSubtitle">Войдите, чтобы получить доступ</p>
+        <div id="authMsg" class="auth-msg"></div>
+        <div id="authFields">
+            <input type="email" id="authEmail" placeholder="Email">
+            <input type="password" id="authPassword" placeholder="Пароль">
+            <button class="btn" id="authBtn">Войти</button>
+        </div>
+        <div>
+            <span class="switch-link" id="authSwitch">Нет аккаунта? Зарегистрироваться</span>
+        </div>
+    </div>
+
+    <!-- РАБОЧАЯ ОБЛАСТЬ -->
+    <div id="workspace" class="workspace">
+        <div class="tabs">
+            <div class="tab active" data-tab="projects">📁 Проекты</div>
+            <div class="tab" data-tab="tools">🛠️ Инструменты</div>
+            <div class="tab" data-tab="ide">💻 IDE</div>
+        </div>
+        <div class="tab-content active" id="tab-projects">
+            <div class="flex-row">
+                <input type="text" id="newProjectName" placeholder="Название проекта">
+                <button class="btn" id="createProjectBtn">➕ Создать</button>
+            </div>
+            <div class="project-list" id="projectListContent">
+                <div class="empty-state">У вас пока нет проектов</div>
+            </div>
+        </div>
+        <div class="tab-content" id="tab-tools">
+            <div class="tools-grid">
+                <div class="tool-card">
+                    <h3>🔐 Пароль</h3>
+                    <input type="number" id="passLength" value="16">
+                    <button class="btn" id="genPassBtn">Сгенерировать</button>
+                    <div class="output" id="passOutput">Нажмите</div>
+                </div>
+                <div class="tool-card">
+                    <h3>🧹 JSON</h3>
+                    <textarea id="jsonInput" placeholder='{"name":"DevLab"}'></textarea>
+                    <button class="btn" id="jsonFormatBtn">Форматировать</button>
+                    <div class="output" id="jsonOutput">Вставьте JSON</div>
+                </div>
+                <div class="tool-card">
+                    <h3>🔑 Хеши</h3>
+                    <input type="text" id="hashInput" placeholder="Текст">
+                    <select id="hashType"><option>MD5</option><option>SHA1</option><option selected>SHA256</option></select>
+                    <button class="btn" id="hashBtn">Хешировать</button>
+                    <div class="output" id="hashOutput">Нажмите</div>
+                </div>
+                <div class="tool-card">
+                    <h3>📦 Base64</h3>
+                    <textarea id="base64Input" placeholder="Текст"></textarea>
+                    <button class="btn" id="base64EncodeBtn">Закодировать</button>
+                    <button class="btn btn-secondary" id="base64DecodeBtn" style="margin-top:4px;">Раскодировать</button>
+                    <div class="output" id="base64Output">Вставьте текст</div>
+                </div>
+                <div class="tool-card">
+                    <h3>🔢 Системы счисления</h3>
+                    <input type="text" id="numInput" placeholder="Число" value="255">
+                    <button class="btn" id="convertNumBtn">Перевести</button>
+                    <div class="output" id="numOutput">DEC: 255<br>HEX: FF</div>
+                </div>
+                <div class="tool-card">
+                    <h3>🎲 Данные</h3>
+                    <button class="btn" id="fakeDataBtn">Сгенерировать</button>
+                    <div class="output" id="fakeDataOutput">Нажмите</div>
+                </div>
+            </div>
+        </div>
+        <div class="tab-content" id="tab-ide">
+            <div class="ide-layout">
+                <div class="file-tree" id="fileTree">
+                    <div class="tree-header">
+                        <span style="color:#f0f6fc;font-weight:600;">📁 Файлы</span>
+                        <div style="display:flex;gap:4px;">
+                            <button class="btn btn-secondary btn-small" id="newFileBtn">📄</button>
+                            <button class="btn btn-secondary btn-small" id="newFolderBtn">📂</button>
+                        </div>
+                    </div>
+                    <div id="fileTreeContent">
+                        <div class="empty-state">Нет файлов</div>
+                    </div>
+                </div>
+                <div class="editor-area">
+                    <div class="editor-header">
+                        <div class="info">📄 <strong id="currentFileLabel">Не выбран</strong></div>
+                        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                            <button class="btn btn-secondary btn-small" id="runFileBtn">▶️ Запустить</button>
+                            <button class="btn btn-secondary btn-small" id="saveFileBtn">💾 Сохранить</button>
+                            <button class="btn btn-danger btn-small" id="deleteFileBtn">🗑️ Удалить</button>
+                        </div>
+                    </div>
+                    <div class="editor-wrapper">
+                        <textarea id="codeEditor"></textarea>
+                    </div>
+                    <div class="output-console" id="outputConsole">
+                        <span style="color:#8b949e;">📟 Консоль вывода</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модалка -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <h3 id="modalTitle">Создать файл</h3>
+            <input type="text" id="modalInput" placeholder="Имя (например, main.py)">
+            <button class="btn" id="modalConfirmBtn">Создать</button>
+            <button class="btn btn-secondary" id="modalCancelBtn">Отмена</button>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ============================================================
+        //  ХРАНИЛИЩЕ (без почты, для простоты)
+        // ============================================================
+        const STORAGE_KEY = 'devlab_users';
+        const SESSION_KEY = 'devlab_session';
+
+        function getUsers() {
+            try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; } catch { return {}; }
+        }
+
+        function saveUsers(u) { localStorage.setItem(STORAGE_KEY, JSON.stringify(u)); }
+
+        function userExists(e) { return !!getUsers()[e]; }
+
+        function createUser(e, p) {
+            const u = getUsers();
+            u[e] = { password: p, projects: {} };
+            saveUsers(u);
+        }
+
+        function validateUser(e, p) {
+            const u = getUsers();
+            return u[e] && u[e].password === p;
+        }
+
+        function getProjects(e) {
+            const u = getUsers();
+            return u[e]?.projects || {};
+        }
+
+        function getProjectData(e, name) {
+            const u = getUsers();
+            if (!u[e]?.projects) return null;
+            if (typeof u[e].projects[name] === 'string') {
+                u[e].projects[name] = { files: { 'main.js': u[e].projects[name] } };
+                saveUsers(u);
+            }
+            return u[e].projects[name] || null;
+        }
+
+        function saveProjectData(e, name, data) {
+            const u = getUsers();
+            if (!u[e]) u[e] = { password: '', projects: {} };
+            u[e].projects[name] = data;
+            saveUsers(u);
+        }
+
+        function deleteProject(e, n) {
+            const u = getUsers();
+            if (u[e]?.projects) { delete u[e].projects[n];
+                saveUsers(u); }
+        }
+
+        // ============================================================
+        //  ЭЛЕМЕНТЫ
+        // ============================================================
+        function $(id) { return document.getElementById(id); }
+
+        // ============================================================
+        //  ВКЛАДКИ
+        // ============================================================
+        document.querySelectorAll('.tab').forEach(function(tab) {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
+                document.querySelectorAll('.tab-content').forEach(function(t) { t.classList.remove('active'); });
+                this.classList.add('active');
+                document.getElementById('tab-' + this.dataset.tab).classList.add('active');
+                if (this.dataset.tab === 'ide') loadProjectFiles();
+            });
+        });
+
+        // ============================================================
+        //  АВТОРИЗАЦИЯ
+        // ============================================================
+        var isLogin = true;
+        var currentUser = '';
+        var currentProject = '';
+        var currentFile = '';
+        var editor = null;
+        var fileTreeData = {};
+
+        function renderAuth() {
+            var authMsg = $('authMsg');
+            authMsg.textContent = '';
+            authMsg.className = 'auth-msg';
+            $('authFields').classList.remove('hidden');
+            if (isLogin) {
+                $('authTitle').textContent = 'Вход';
+                $('authSubtitle').textContent = 'Войдите, чтобы получить доступ';
+                $('authBtn').textContent = 'Войти';
+                $('authSwitch').textContent = 'Нет аккаунта? Зарегистрироваться';
+            } else {
+                $('authTitle').textContent = 'Регистрация';
+                $('authSubtitle').textContent = 'Создайте аккаунт';
+                $('authBtn').textContent = 'Зарегистрироваться';
+                $('authSwitch').textContent = 'Уже есть аккаунт? Войти';
+            }
+            $('authEmail').value = '';
+            $('authPassword').value = '';
+        }
+
+        $('authSwitch').addEventListener('click', function() {
+            isLogin = !isLogin;
+            renderAuth();
+        });
+
+        // ============================================================
+        //  КНОПКА ВХОДА / РЕГИСТРАЦИИ (ГЛАВНОЕ!)
+        // ============================================================
+        $('authBtn').addEventListener('click', function(e) {
+            e.preventDefault();
+            var email = $('authEmail').value.trim();
+            var password = $('authPassword').value.trim();
+
+            if (!email || !password) {
+                $('authMsg').textContent = '❌ Заполните все поля';
+                $('authMsg').className = 'auth-msg error';
+                return;
+            }
+            if (!email.includes('@') || !email.includes('.')) {
+                $('authMsg').textContent = '❌ Введите корректный email';
+                $('authMsg').className = 'auth-msg error';
+                return;
+            }
+            if (password.length < 4) {
+                $('authMsg').textContent = '❌ Пароль должен быть не менее 4 символов';
+                $('authMsg').className = 'auth-msg error';
+                return;
+            }
+
+            if (isLogin) {
+                if (!userExists(email)) {
+                    $('authMsg').textContent = '❌ Пользователь не найден';
+                    $('authMsg').className = 'auth-msg error';
+                    return;
+                }
+                if (!validateUser(email, password)) {
+                    $('authMsg').textContent = '❌ Неверный пароль';
+                    $('authMsg').className = 'auth-msg error';
+                    return;
+                }
+                loginUser(email);
+                return;
+            }
+
+            if (userExists(email)) {
+                $('authMsg').textContent = '❌ Пользователь уже существует';
+                $('authMsg').className = 'auth-msg error';
+                return;
+            }
+            createUser(email, password);
+            $('authMsg').textContent = '✅ Аккаунт создан! Теперь войдите.';
+            $('authMsg').className = 'auth-msg success';
+            setTimeout(function() {
+                isLogin = true;
+                renderAuth();
+                $('authEmail').value = email;
+                $('authMsg').textContent = '✅ Аккаунт создан, войдите!';
+                $('authMsg').className = 'auth-msg success';
+            }, 1500);
+        });
+
+        // ============================================================
+        //  ВХОД / ВЫХОД
+        // ============================================================
+        function loginUser(email) {
+            currentUser = email;
+            localStorage.setItem(SESSION_KEY, email);
+            $('authContainer').style.display = 'none';
+            $('header').classList.add('active');
+            $('workspace').classList.add('active');
+            $('userEmail').textContent = email;
+            loadProjects();
+            initEditor();
+            showToast('👋 Добро пожаловать, ' + email.split('@')[0] + '!');
+        }
+
+        $('logoutBtn').addEventListener('click', function() {
+            localStorage.removeItem(SESSION_KEY);
+            $('header').classList.remove('active');
+            $('workspace').classList.remove('active');
+            $('authContainer').style.display = 'block';
+            isLogin = true;
+            renderAuth();
+            showToast('👋 Вы вышли');
+        });
+
+        // ============================================================
+        //  ПРОЕКТЫ
+        // ============================================================
+        function loadProjects() {
+            if (!currentUser) return;
+            var projects = getProjects(currentUser);
+            var names = Object.keys(projects);
+            if (names.length === 0) {
+                $('projectListContent').innerHTML = '<div class="empty-state">У вас пока нет проектов</div>';
+                return;
+            }
+            var html = '';
+            for (var i = 0; i < names.length; i++) {
+                var name = names[i];
+                html +=
+                    '<div class="item"><span class="name" data-project="' + name + '">' + name +
+                    '</span><div class="actions"><button class="btn btn-secondary btn-small" data-project="' + name +
+                    '" data-action="open">📝</button><button class="btn btn-danger btn-small" data-project="' + name +
+                    '" data-action="delete">🗑️</button></div></div>';
+            }
+            $('projectListContent').innerHTML = html;
+
+            document.querySelectorAll('#projectListContent .item .actions .btn').forEach(function(btn) {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    var project = this.dataset.project;
+                    var action = this.dataset.action;
+                    if (action === 'open') {
+                        openProject(project);
+                    } else if (action === 'delete') {
+                        deleteProjectAction(project);
+                    }
+                });
+            });
+
+            document.querySelectorAll('#projectListContent .item .name').forEach(function(el) {
+                el.addEventListener('click', function() {
+                    openProject(this.dataset.project);
+                });
+            });
+        }
+
+        function openProject(name) {
+            if (!currentUser) return;
+            var data = getProjectData(currentUser, name);
+            if (!data) { showToast('❌ Проект не найден'); return; }
+            currentProject = name;
+            fileTreeData = data.files || {};
+            loadProjectFiles();
+            showToast('📂 Проект "' + name + '" открыт');
+            document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
+            document.querySelectorAll('.tab-content').forEach(function(t) { t.classList.remove('active'); });
+            document.querySelector('[data-tab="ide"]').classList.add('active');
+            document.getElementById('tab-ide').classList.add('active');
+        }
+
+        function deleteProjectAction(name) {
+            if (!confirm('Удалить проект "' + name + '"?')) return;
+            if (!currentUser) return;
+            deleteProject(currentUser, name);
+            if (currentProject === name) {
+                currentProject = '';
+                fileTreeData = {};
+                loadProjectFiles();
+                if (editor) editor.setValue('');
+                $('currentFileLabel').textContent = 'Не выбран';
+                currentFile = '';
+            }
+            loadProjects();
+            showToast('🗑️ Проект "' + name + '" удалён');
+        }
+
+        $('createProjectBtn').addEventListener('click', function() {
+            var name = $('newProjectName').value.trim();
+            if (!name) { showToast('❌ Введите название'); return; }
+            if (!currentUser) return;
+            var projects = getProjects(currentUser);
+            if (projects[name]) { showToast('❌ Проект уже существует'); return; }
+            saveProjectData(currentUser, name, { files: { 'main.js': '// Новый проект\nconsole.log("Hello, DevLab!");' } });
+            $('newProjectName').value = '';
+            loadProjects();
+            openProject(name);
+            showToast('✅ Проект "' + name + '" создан');
+        });
+
+        // ============================================================
+        //  ФАЙЛОВЫЙ МЕНЕДЖЕР
+        // ============================================================
+        function loadProjectFiles() {
+            var container = $('fileTreeContent');
+            var keys = Object.keys(fileTreeData);
+            if (keys.length === 0) {
+                container.innerHTML = '<div class="empty-state">Нет файлов</div>';
+                return;
+            }
+            var html = '';
+            var folders = {};
+            var files = [];
+            keys.forEach(function(path) {
+                if (path.includes('/')) {
+                    var parts = path.split('/');
+                    var folder = parts[0];
+                    if (!folders[folder]) folders[folder] = [];
+                    folders[folder].push(path);
+                } else {
+                    files.push(path);
+                }
+            });
+            for (var f in folders) {
+                html += '<div class="folder"><div class="folder-name">📂 ' + f + '</div>';
+                folders[f].forEach(function(filePath) {
+                    var name = filePath.split('/').pop();
+                    html += renderFileItem(filePath, name);
+                });
+                html += '</div>';
+            }
+            files.forEach(function(filePath) {
+                html += renderFileItem(filePath, filePath);
+            });
+            container.innerHTML = html;
+
+            document.querySelectorAll('.file-item .name').forEach(function(el) {
+                el.addEventListener('click', function() {
+                    openFile(this.dataset.path);
+                });
+            });
+
+            document.querySelectorAll('.file-item .actions .btn-danger').forEach(function(btn) {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    var path = this.dataset.path;
+                    deleteFile(path);
+                });
+            });
+        }
+
+        function renderFileItem(path, displayName) {
+            var isActive = (path === currentFile) ? 'active' : '';
+            return '<div class="file-item ' + isActive + '"><span class="name" data-path="' + path + '">📄 ' +
+                displayName + '</span><div class="actions"><button class="btn btn-danger btn-small" data-path="' +
+                path + '">✕</button></div></div>';
+        }
+
+        function openFile(path) {
+            if (!fileTreeData[path]) { showToast('❌ Файл не найден'); return; }
+            currentFile = path;
+            $('currentFileLabel').textContent = path;
+            if (editor) {
+                editor.setValue(fileTreeData[path]);
+                setEditorLanguage(path);
+            }
+            document.querySelectorAll('.file-item').forEach(function(el) { el.classList.remove('active'); });
+            document.querySelectorAll('.file-item .name').forEach(function(el) {
+                if (el.dataset.path === path) {
+                    el.closest('.file-item').classList.add('active');
+                }
+            });
+        }
+
+        function deleteFile(path) {
+            if (!confirm('Удалить файл "' + path + '"?')) return;
+            delete fileTreeData[path];
+            if (currentFile === path) {
+                currentFile = '';
+                $('currentFileLabel').textContent = 'Не выбран';
+                if (editor) editor.setValue('');
+            }
+            saveCurrentProject();
+            loadProjectFiles();
+            showToast('🗑️ Файл удалён');
+        }
+
+        // ============================================================
+        //  СОЗДАНИЕ ФАЙЛОВ И ПАПОК
+        // ============================================================
+        var modalType = 'file';
+
+        function showModal(type) {
+            modalType = type;
+            $('modalTitle').textContent = type === 'file' ? 'Создать файл' : 'Создать папку';
+            $('modalInput').value = '';
+            $('modalInput').placeholder = type === 'file' ? 'main.py' : 'папка';
+            $('modalOverlay').classList.add('active');
+            $('modalInput').focus();
+        }
+
+        $('newFileBtn').addEventListener('click', function() { showModal('file'); });
+        $('newFolderBtn').addEventListener('click', function() { showModal('folder'); });
+
+        $('modalCancelBtn').addEventListener('click', function() {
+            $('modalOverlay').classList.remove('active');
+        });
+
+        $('modalConfirmBtn').addEventListener('click', function() {
+            var name = $('modalInput').value.trim();
+            if (!name) { showToast('❌ Введите имя'); return; }
+            if (modalType === 'file') {
+                if (fileTreeData[name]) { showToast('❌ Файл уже существует'); return; }
+                fileTreeData[name] = '// Новый файл\n';
+                saveCurrentProject();
+                loadProjectFiles();
+                openFile(name);
+                showToast('✅ Файл "' + name + '" создан');
+            } else {
+                var folderName = name + '/';
+                var dummyFile = folderName + 'README.md';
+                if (fileTreeData[dummyFile]) { showToast('❌ Папка уже существует'); return; }
+                fileTreeData[dummyFile] = '# ' + name + '\n';
+                saveCurrentProject();
+                loadProjectFiles();
+                showToast('📂 Папка "' + name + '" создана');
+            }
+            $('modalOverlay').classList.remove('active');
+        });
+
+        // ============================================================
+        //  СОХРАНЕНИЕ
+        // ============================================================
+        function saveCurrentProject() {
+            if (!currentUser || !currentProject) return;
+            var data = { files: fileTreeData };
+            saveProjectData(currentUser, currentProject, data);
+        }
+
+        $('saveFileBtn').addEventListener('click', function() {
+            if (!currentFile) { showToast('❌ Откройте файл'); return; }
+            if (!editor) return;
+            fileTreeData[currentFile] = editor.getValue();
+            saveCurrentProject();
+            showToast('💾 Файл "' + currentFile + '" сохранён');
+        });
+
+        // ============================================================
+        //  РЕДАКТОР
+        // ============================================================
+        function initEditor() {
+            if (editor) { editor.toTextArea(); }
+            editor = CodeMirror.fromTextArea($('codeEditor'), {
+                lineNumbers: true,
+                mode: 'javascript',
+                theme: 'default',
+                indentUnit: 2,
+                tabSize: 2,
+                lineWrapping: true
+            });
+            setEditorLanguage('default');
+
+            editor.on('change', function() {
+                if (currentFile) {
+                    fileTreeData[currentFile] = editor.getValue();
+                    clearTimeout(editor._saveTimer);
+                    editor._saveTimer = setTimeout(function() {
+                        saveCurrentProject();
+                    }, 2000);
+                }
+            });
+        }
+
+        function setEditorLanguage(path) {
+            if (!editor) return;
+            var mode = 'javascript';
+            if (path.endsWith('.py')) mode = 'python';
+            else if (path.endsWith('.html')) mode = 'htmlmixed';
+            else if (path.endsWith('.css')) mode = 'css';
+            else if (path.endsWith('.json')) mode = 'javascript';
+            else if (path.endsWith('.md')) mode = 'markdown';
+            editor.setOption('mode', mode);
+        }
+
+        // ============================================================
+        //  ЗАПУСК
+        // ============================================================
+        $('runFileBtn').addEventListener('click', function() {
+            if (!currentFile) { showToast('❌ Откройте файл'); return; }
+            var content = editor ? editor.getValue() : fileTreeData[currentFile];
+            var ext = currentFile.split('.').pop().toLowerCase();
+
+            if (ext === 'html') {
+                var win = window.open('', '_blank');
+                if (win) {
+                    win.document.write(content);
+                    win.document.close();
+                } else {
+                    showToast('❌ Разрешите всплывающие окна');
+                }
+            } else if (ext === 'js') {
+                var consoleDiv = $('outputConsole');
+                var oldLog = console.log;
+                var logs = [];
+                console.log = function() {
+                    var args = Array.from(arguments);
+                    logs.push(args.join(' '));
+                    oldLog.apply(console, arguments);
+                };
+                try {
+                    var result = eval(content);
+                    if (result !== undefined) logs.push('→ ' + result);
+                } catch (e) {
+                    logs.push('❌ ' + e.message);
+                }
+                console.log = oldLog;
+                consoleDiv.innerHTML = logs.map(function(line) { return line; }).join('\n');
+                showToast('✅ Код выполнен');
+            } else if (ext === 'py') {
+                $('outputConsole').innerHTML = '🐍 Python не поддерживается в браузере. Установите локальный интерпретатор.';
+                showToast('⚠️ Python выполняется только локально');
+            } else {
+                $('outputConsole').innerHTML = '📄 Файл "' + currentFile + '" нельзя выполнить в браузере.';
+                showToast('⚠️ Запуск не поддерживается');
+            }
+        });
+
+        // ============================================================
+        //  УДАЛЕНИЕ ФАЙЛА (кнопка в редакторе)
+        // ============================================================
+        $('deleteFileBtn').addEventListener('click', function() {
+            if (!currentFile) { showToast('❌ Откройте файл'); return; }
+            deleteFile(currentFile);
+        });
+
+        // ============================================================
+        //  ИНСТРУМЕНТЫ
+        // ============================================================
+        $('genPassBtn').addEventListener('click', function() {
+            var len = parseInt($('passLength').value) || 16;
+            var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=';
+            var p = '';
+            for (var i = 0; i < len; i++) { p += chars[Math.floor(Math.random() * chars.length)]; }
+            $('passOutput').textContent = p;
+            showToast('🔑 Пароль сгенерирован');
+        });
+
+        $('jsonFormatBtn').addEventListener('click', function() {
+            try {
+                var parsed = JSON.parse($('jsonInput').value);
+                $('jsonOutput').textContent = JSON.stringify(parsed, null, 2);
+                showToast('✅ JSON отформатирован');
+            } catch (e) {
+                $('jsonOutput').textContent = '❌ Ошибка: ' + e.message;
+                $('jsonOutput').className = 'output error';
+                showToast('❌ Неверный JSON');
+            }
+        });
+
+        $('hashBtn').addEventListener('click', function() {
+            var text = $('hashInput').value || 'Привет';
+            var type = $('hashType').value;
+            var hash = 0;
+            for (var i = 0; i < text.length; i++) {
+                hash = ((hash << 5) - hash) + text.charCodeAt(i);
+                hash = hash & hash;
+            }
+            var result = Math.abs(hash).toString(16);
+            if (type === 'MD5') result = result.padStart(32, '0');
+            else if (type === 'SHA1') result = result.padStart(40, '0');
+            else result = result.padStart(64, '0');
+            $('hashOutput').textContent = result;
+            showToast('✅ Хеш готов');
+        });
+
+        $('base64EncodeBtn').addEventListener('click', function() {
+            try { $('base64Output').textContent = btoa($('base64Input').value);
+                showToast('✅ Закодировано'); } catch (e) { $('base64Output').textContent = '❌ Ошибка';
+                showToast('❌ Ошибка'); }
+        });
+        $('base64DecodeBtn').addEventListener('click', function() {
+            try { $('base64Output').textContent = atob($('base64Input').value);
+                showToast('✅ Раскодировано'); } catch (e) { $('base64Output').textContent = '❌ Неверный Base64';
+                showToast('❌ Ошибка'); }
+        });
+
+        $('convertNumBtn').addEventListener('click', function() {
+            var num = parseInt($('numInput').value);
+            if (isNaN(num)) { $('numOutput').textContent = '❌ Введите число';
+                showToast('❌ Ошибка'); return; }
+            $('numOutput').textContent = 'DEC: ' + num + '\nHEX: ' + num.toString(16).toUpperCase() + '\nBIN: ' + num
+                .toString(2) + '\nOCT: ' + num.toString(8);
+            showToast('✅ Перевод выполнен');
+        });
+
+        var firstNames = ['Кирилл', 'Алексей', 'Дмитрий', 'Анна', 'Екатерина', 'Ольга'];
+        var lastNames = ['Иванов', 'Петров', 'Сидоров', 'Кузнецов', 'Смирнов'];
+        var domains = ['gmail.com', 'yandex.ru', 'mail.ru'];
+        $('fakeDataBtn').addEventListener('click', function() {
+            var name = firstNames[Math.floor(Math.random() * firstNames.length)] + ' ' + lastNames[Math.floor(Math
+                .random() * lastNames.length)];
+            var email = name.split(' ')[0].toLowerCase() + Math.floor(Math.random() * 999) + '@' + domains[Math.floor(Math
+                .random() * domains.length)];
+            var phone = '+7 ' + (900 + Math.floor(Math.random() * 99)) + ' ' + (100 + Math.floor(Math.random() * 899)) +
+                '-' + (10 + Math.floor(Math.random() * 89)) + '-' + (10 + Math.floor(Math.random() * 89));
+            $('fakeDataOutput').textContent = 'Имя: ' + name + '\nEmail: ' + email + '\nТелефон: ' + phone;
+            showToast('✅ Данные сгенерированы');
+        });
+
+        // ============================================================
+        //  TOAST
+        // ============================================================
+        function showToast(message) {
+            var toast = $('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            clearTimeout(toast._timeout);
+            toast._timeout = setTimeout(function() {
+                toast.classList.remove('show');
+            }, 2500);
+        }
+
+        // ============================================================
+        //  ИНИЦИАЛИЗАЦИЯ
+        // ============================================================
+        renderAuth();
+        var savedSession = localStorage.getItem(SESSION_KEY);
+        if (savedSession && userExists(savedSession)) {
+            loginUser(savedSession);
+        }
+        console.log('⚡ DevLab Pro работает!');
+    </script>
+</body>
+</html>

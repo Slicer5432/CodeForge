@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DevLab Pro</title>
+    <title>CodeForge — IDE с подтверждением</title>
+    <!-- CodeMirror -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
@@ -12,513 +13,141 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
     <style>
-        /* Все стили как раньше, я оставлю компактно */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            background: #0d1117;
-            font-family: 'Segoe UI', Arial, sans-serif;
-            color: #c9d1d9;
-            min-height: 100vh;
-        }
-        .header {
-            background: #161b22;
-            border-bottom: 1px solid #30363d;
-            padding: 12px 24px;
-            display: none;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        .header.active {
-            display: flex;
-        }
-        .header h1 {
-            font-size: 22px;
-            color: #f0f6fc;
-        }
-        .header h1 span {
-            color: #58a6ff;
-        }
-        .header .user-area {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-        .header .user-area .email {
-            color: #8b949e;
-            font-size: 14px;
-        }
-        .btn {
-            background: #238636;
-            border: none;
-            color: #fff;
-            font-weight: 600;
-            font-size: 14px;
-            padding: 8px 18px;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: 0.15s;
-        }
-        .btn:hover {
-            background: #2ea043;
-        }
-        .btn-danger {
-            background: #da3633;
-        }
-        .btn-danger:hover {
-            background: #f85149;
-        }
-        .btn-secondary {
-            background: #21262d;
-            color: #c9d1d9;
-        }
-        .btn-secondary:hover {
-            background: #30363d;
-        }
-        .btn-small {
-            padding: 4px 10px;
-            font-size: 12px;
-        }
-        .auth-container {
-            max-width: 400px;
-            margin: 60px auto;
-            background: #161b22;
-            padding: 32px;
-            border-radius: 16px;
-            border: 1px solid #30363d;
-            text-align: center;
-        }
-        .auth-container h2 {
-            color: #f0f6fc;
-            margin-bottom: 8px;
-        }
-        .auth-container p {
-            color: #8b949e;
-            font-size: 14px;
-            margin-bottom: 20px;
-        }
-        .auth-container input {
-            width: 100%;
-            padding: 12px 16px;
-            border-radius: 8px;
-            border: 1px solid #30363d;
-            background: #0d1117;
-            color: #f0f6fc;
-            font-size: 15px;
-            margin-bottom: 12px;
-        }
-        .auth-container input:focus {
-            outline: none;
-            border-color: #58a6ff;
-        }
-        .auth-container .btn {
-            width: 100%;
-            padding: 12px;
-            font-size: 16px;
-        }
-        .switch-link {
-            color: #58a6ff;
-            cursor: pointer;
-            font-size: 14px;
-            margin-top: 16px;
-            display: inline-block;
-        }
-        .switch-link:hover {
-            text-decoration: underline;
-        }
-        .auth-msg {
-            font-size: 13px;
-            margin-top: 10px;
-            min-height: 20px;
-        }
-        .auth-msg.error {
-            color: #f85149;
-        }
-        .auth-msg.success {
-            color: #3fb950;
-        }
-        .hidden {
-            display: none !important;
-        }
-        .workspace {
-            display: none;
-            padding: 20px;
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-        .workspace.active {
-            display: block;
-        }
-        .tabs {
-            display: flex;
-            gap: 6px;
-            border-bottom: 1px solid #30363d;
-            padding-bottom: 10px;
-            margin-bottom: 16px;
-            flex-wrap: wrap;
-        }
-        .tabs .tab {
-            background: #21262d;
-            padding: 8px 18px;
-            border-radius: 6px 6px 0 0;
-            cursor: pointer;
-            font-size: 14px;
-            color: #8b949e;
-            transition: 0.15s;
-        }
-        .tabs .tab:hover {
-            background: #30363d;
-            color: #f0f6fc;
-        }
-        .tabs .tab.active {
-            background: #0d1117;
-            color: #f0f6fc;
-            border: 1px solid #30363d;
-            border-bottom: none;
-        }
-        .tab-content {
-            display: none;
-        }
-        .tab-content.active {
-            display: block;
-        }
-        .ide-layout {
-            display: flex;
-            gap: 16px;
-            min-height: 500px;
-        }
-        .file-tree {
-            width: 280px;
-            min-width: 200px;
-            background: #161b22;
-            border: 1px solid #30363d;
-            border-radius: 10px;
-            padding: 12px;
-            overflow-y: auto;
-            max-height: 600px;
-        }
-        .file-tree .tree-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-            flex-wrap: wrap;
-            gap: 6px;
-        }
-        .file-tree .tree-header .btn {
-            padding: 4px 10px;
-            font-size: 12px;
-        }
-        .file-tree .folder {
-            margin-left: 12px;
-            border-left: 1px solid #30363d;
-            padding-left: 8px;
-        }
-        .file-tree .folder-name {
-            color: #58a6ff;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 4px 0;
-        }
-        .file-tree .folder-name:hover {
-            color: #79c0ff;
-        }
-        .file-tree .file-item {
-            color: #c9d1d9;
-            cursor: pointer;
-            padding: 4px 8px;
-            border-radius: 4px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .file-tree .file-item:hover {
-            background: #21262d;
-        }
-        .file-tree .file-item.active {
-            background: #1f3a4a;
-            color: #58a6ff;
-        }
-        .file-tree .file-item .actions {
-            display: flex;
-            gap: 4px;
-        }
-        .file-tree .file-item .actions .btn {
-            padding: 2px 6px;
-            font-size: 10px;
-        }
-        .file-tree .empty-state {
-            color: #8b949e;
-            font-size: 13px;
-            padding: 16px 0;
-            text-align: center;
-        }
-        .editor-area {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        .editor-area .editor-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        .editor-area .editor-header .info {
-            color: #8b949e;
-            font-size: 14px;
-        }
-        .editor-area .editor-header .info strong {
-            color: #f0f6fc;
-        }
-        .editor-wrapper {
-            background: #0d1117;
-            border: 1px solid #30363d;
-            border-radius: 10px;
-            overflow: hidden;
-            flex: 1;
-        }
-        .editor-wrapper .CodeMirror {
-            height: 450px;
-            font-size: 13px;
-        }
-        .output-console {
-            background: #0d1117;
-            border: 1px solid #30363d;
-            border-radius: 10px;
-            padding: 12px 16px;
-            max-height: 150px;
-            overflow-y: auto;
-            font-family: monospace;
-            font-size: 13px;
-            color: #58a6ff;
-            white-space: pre-wrap;
-            word-break: break-all;
-        }
-        .output-console .error {
-            color: #f85149;
-        }
-        .output-console .success {
-            color: #3fb950;
-        }
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.7);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-        .modal-overlay.active {
-            display: flex;
-        }
-        .modal {
-            background: #161b22;
-            border: 1px solid #30363d;
-            border-radius: 16px;
-            padding: 24px;
-            max-width: 400px;
-            width: 90%;
-        }
-        .modal h3 {
-            color: #f0f6fc;
-            margin-bottom: 12px;
-        }
-        .modal input {
-            width: 100%;
-            padding: 10px 14px;
-            border-radius: 6px;
-            border: 1px solid #30363d;
-            background: #0d1117;
-            color: #f0f6fc;
-            font-size: 14px;
-            margin-bottom: 12px;
-        }
-        .modal .btn {
-            width: 100%;
-            padding: 10px;
-        }
-        .modal .btn-secondary {
-            margin-top: 6px;
-        }
-        .project-list .item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 12px;
-            border-bottom: 1px solid #21262d;
-        }
-        .project-list .item:last-child {
-            border-bottom: none;
-        }
-        .project-list .item .name {
-            color: #c9d1d9;
-            cursor: pointer;
-        }
-        .project-list .item .name:hover {
-            color: #58a6ff;
-        }
-        .project-list .item .actions {
-            display: flex;
-            gap: 6px;
-        }
-        .project-list .item .actions .btn {
-            padding: 3px 10px;
-            font-size: 11px;
-        }
-        .empty-state {
-            color: #8b949e;
-            text-align: center;
-            padding: 20px;
-        }
-        .flex-row {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-bottom: 14px;
-        }
-        .flex-row input {
-            flex: 1;
-            min-width: 150px;
-            padding: 8px 12px;
-            border-radius: 6px;
-            border: 1px solid #30363d;
-            background: #0d1117;
-            color: #f0f6fc;
-            font-size: 13px;
-        }
-        .tools-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 16px;
-        }
-        .tool-card {
-            background: #161b22;
-            border: 1px solid #30363d;
-            border-radius: 10px;
-            padding: 16px;
-        }
-        .tool-card h3 {
-            color: #f0f6fc;
-            font-size: 15px;
-            margin-bottom: 10px;
-        }
-        .tool-card input,
-        .tool-card textarea,
-        .tool-card select {
-            width: 100%;
-            padding: 8px 12px;
-            border-radius: 6px;
-            border: 1px solid #30363d;
-            background: #0d1117;
-            color: #f0f6fc;
-            font-size: 13px;
-            margin-bottom: 8px;
-            font-family: monospace;
-        }
-        .tool-card textarea {
-            min-height: 60px;
-        }
-        .tool-card .btn {
-            width: 100%;
-            padding: 8px;
-            font-size: 13px;
-        }
-        .tool-card .output {
-            background: #0d1117;
-            padding: 8px 12px;
-            border-radius: 6px;
-            margin-top: 8px;
-            font-family: monospace;
-            font-size: 12px;
-            color: #58a6ff;
-            word-break: break-all;
-            min-height: 30px;
-            border: 1px solid #21262d;
-            max-height: 120px;
-            overflow-y: auto;
-            white-space: pre-wrap;
-        }
-        .toast {
-            position: fixed;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #161b22;
-            border: 1px solid #30363d;
-            padding: 12px 28px;
-            border-radius: 40px;
-            color: #c9d1d9;
-            font-size: 15px;
-            display: none;
-            z-index: 999;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
-            max-width: 90%;
-        }
-        .toast.show {
-            display: block;
-            animation: fadeUp 0.3s ease;
-        }
-        @keyframes fadeUp {
-            0% {
-                opacity: 0;
-                transform: translateX(-50%) translateY(20px);
-            }
-            100% {
-                opacity: 1;
-                transform: translateX(-50%) translateY(0);
-            }
-        }
-        @media (max-width: 768px) {
-            .ide-layout {
-                flex-direction: column;
-            }
-            .file-tree {
-                width: 100%;
-                max-height: 300px;
-            }
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #0d1117; font-family: 'Segoe UI', Arial, sans-serif; color: #c9d1d9; min-height: 100vh; }
+        .header { background: #161b22; border-bottom: 1px solid #30363d; padding: 12px 24px; display: none; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .header.active { display: flex; }
+        .header h1 { font-size: 22px; color: #f0f6fc; }
+        .header h1 span { color: #58a6ff; }
+        .header .user-area { display: flex; align-items: center; gap: 16px; }
+        .header .user-area .email { color: #8b949e; font-size: 14px; }
+        .btn { background: #238636; border: none; color: #fff; font-weight: 600; font-size: 14px; padding: 8px 18px; border-radius: 6px; cursor: pointer; transition: 0.15s; }
+        .btn:hover { background: #2ea043; }
+        .btn-danger { background: #da3633; }
+        .btn-danger:hover { background: #f85149; }
+        .btn-secondary { background: #21262d; color: #c9d1d9; }
+        .btn-secondary:hover { background: #30363d; }
+        .btn-small { padding: 4px 10px; font-size: 12px; }
+        .auth-container { max-width: 400px; margin: 60px auto; background: #161b22; padding: 32px; border-radius: 16px; border: 1px solid #30363d; text-align: center; }
+        .auth-container h2 { color: #f0f6fc; margin-bottom: 8px; }
+        .auth-container p { color: #8b949e; font-size: 14px; margin-bottom: 20px; }
+        .auth-container input { width: 100%; padding: 12px 16px; border-radius: 8px; border: 1px solid #30363d; background: #0d1117; color: #f0f6fc; font-size: 15px; margin-bottom: 12px; }
+        .auth-container input:focus { outline: none; border-color: #58a6ff; }
+        .auth-container .btn { width: 100%; padding: 12px; font-size: 16px; }
+        .switch-link { color: #58a6ff; cursor: pointer; font-size: 14px; margin-top: 16px; display: inline-block; }
+        .switch-link:hover { text-decoration: underline; }
+        .auth-msg { font-size: 13px; margin-top: 10px; min-height: 20px; }
+        .auth-msg.error { color: #f85149; }
+        .auth-msg.success { color: #3fb950; }
+        .hidden { display: none !important; }
+        .code-input-group { display: flex; gap: 8px; margin: 12px 0; align-items: center; }
+        .code-input-group input { flex: 1; text-align: center; font-size: 20px; letter-spacing: 4px; }
+        .code-input-group .btn { width: auto; padding: 12px 20px; }
+        .resend-link { color: #58a6ff; cursor: pointer; font-size: 13px; display: inline-block; margin-top: 6px; }
+        .resend-link:hover { text-decoration: underline; }
+        .workspace { display: none; padding: 20px; max-width: 1400px; margin: 0 auto; }
+        .workspace.active { display: block; }
+        .tabs { display: flex; gap: 6px; border-bottom: 1px solid #30363d; padding-bottom: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+        .tabs .tab { background: #21262d; padding: 8px 18px; border-radius: 6px 6px 0 0; cursor: pointer; font-size: 14px; color: #8b949e; transition: 0.15s; }
+        .tabs .tab:hover { background: #30363d; color: #f0f6fc; }
+        .tabs .tab.active { background: #0d1117; color: #f0f6fc; border: 1px solid #30363d; border-bottom: none; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .ide-layout { display: flex; gap: 16px; min-height: 500px; }
+        .file-tree { width: 280px; min-width: 200px; background: #161b22; border: 1px solid #30363d; border-radius: 10px; padding: 12px; overflow-y: auto; max-height: 600px; }
+        .file-tree .tree-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 6px; }
+        .file-tree .tree-header .btn { padding: 4px 10px; font-size: 12px; }
+        .file-tree .folder { margin-left: 12px; border-left: 1px solid #30363d; padding-left: 8px; }
+        .file-tree .folder-name { color: #58a6ff; cursor: pointer; display: flex; align-items: center; gap: 6px; padding: 4px 0; }
+        .file-tree .folder-name:hover { color: #79c0ff; }
+        .file-tree .file-item { color: #c9d1d9; cursor: pointer; padding: 4px 8px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; }
+        .file-tree .file-item:hover { background: #21262d; }
+        .file-tree .file-item.active { background: #1f3a4a; color: #58a6ff; }
+        .file-tree .file-item .actions { display: flex; gap: 4px; }
+        .file-tree .file-item .actions .btn { padding: 2px 6px; font-size: 10px; }
+        .file-tree .empty-state { color: #8b949e; font-size: 13px; padding: 16px 0; text-align: center; }
+        .editor-area { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+        .editor-area .editor-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .editor-area .editor-header .info { color: #8b949e; font-size: 14px; }
+        .editor-area .editor-header .info strong { color: #f0f6fc; }
+        .editor-wrapper { background: #0d1117; border: 1px solid #30363d; border-radius: 10px; overflow: hidden; flex: 1; }
+        .editor-wrapper .CodeMirror { height: 450px; font-size: 13px; }
+        .output-console { background: #0d1117; border: 1px solid #30363d; border-radius: 10px; padding: 12px 16px; max-height: 150px; overflow-y: auto; font-family: monospace; font-size: 13px; color: #58a6ff; white-space: pre-wrap; word-break: break-all; }
+        .output-console .error { color: #f85149; }
+        .output-console .success { color: #3fb950; }
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: #161b22; border: 1px solid #30363d; border-radius: 16px; padding: 24px; max-width: 400px; width: 90%; }
+        .modal h3 { color: #f0f6fc; margin-bottom: 12px; }
+        .modal input { width: 100%; padding: 10px 14px; border-radius: 6px; border: 1px solid #30363d; background: #0d1117; color: #f0f6fc; font-size: 14px; margin-bottom: 12px; }
+        .modal .btn { width: 100%; padding: 10px; }
+        .modal .btn-secondary { margin-top: 6px; }
+        .project-list .item { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-bottom: 1px solid #21262d; }
+        .project-list .item:last-child { border-bottom: none; }
+        .project-list .item .name { color: #c9d1d9; cursor: pointer; }
+        .project-list .item .name:hover { color: #58a6ff; }
+        .project-list .item .actions { display: flex; gap: 6px; }
+        .project-list .item .actions .btn { padding: 3px 10px; font-size: 11px; }
+        .empty-state { color: #8b949e; text-align: center; padding: 20px; }
+        .flex-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+        .flex-row input { flex: 1; min-width: 150px; padding: 8px 12px; border-radius: 6px; border: 1px solid #30363d; background: #0d1117; color: #f0f6fc; font-size: 13px; }
+        .tools-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+        .tool-card { background: #161b22; border: 1px solid #30363d; border-radius: 10px; padding: 16px; }
+        .tool-card h3 { color: #f0f6fc; font-size: 15px; margin-bottom: 10px; }
+        .tool-card input, .tool-card textarea, .tool-card select { width: 100%; padding: 8px 12px; border-radius: 6px; border: 1px solid #30363d; background: #0d1117; color: #f0f6fc; font-size: 13px; margin-bottom: 8px; font-family: monospace; }
+        .tool-card textarea { min-height: 60px; }
+        .tool-card .btn { width: 100%; padding: 8px; font-size: 13px; }
+        .tool-card .output { background: #0d1117; padding: 8px 12px; border-radius: 6px; margin-top: 8px; font-family: monospace; font-size: 12px; color: #58a6ff; word-break: break-all; min-height: 30px; border: 1px solid #21262d; max-height: 120px; overflow-y: auto; white-space: pre-wrap; }
+        .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #161b22; border: 1px solid #30363d; padding: 12px 28px; border-radius: 40px; color: #c9d1d9; font-size: 15px; display: none; z-index: 999; box-shadow: 0 8px 32px rgba(0,0,0,0.6); max-width: 90%; }
+        .toast.show { display: block; animation: fadeUp 0.3s ease; }
+        @keyframes fadeUp { 0% { opacity: 0; transform: translateX(-50%) translateY(20px); } 100% { opacity: 1; transform: translateX(-50%) translateY(0); } }
+        @media (max-width: 768px) { .ide-layout { flex-direction: column; } .file-tree { width: 100%; max-height: 300px; } }
     </style>
 </head>
 <body>
-    <!-- ШАПКА -->
+
+    <!-- ===== ШАПКА ===== -->
     <div class="header" id="header">
-        <h1>⚡ Dev<span>Lab</span> Pro</h1>
+        <h1>⚡ Code<span>Forge</span></h1>
         <div class="user-area">
             <span class="email" id="userEmail"></span>
             <button class="btn btn-danger" id="logoutBtn">Выйти</button>
         </div>
     </div>
 
-    <!-- АВТОРИЗАЦИЯ -->
+    <!-- ===== АВТОРИЗАЦИЯ ===== -->
     <div id="authContainer" class="auth-container">
         <h2 id="authTitle">Вход</h2>
-        <p id="authSubtitle">Войдите, чтобы получить доступ</p>
+        <p id="authSubtitle">Войдите, чтобы получить доступ к CodeForge</p>
         <div id="authMsg" class="auth-msg"></div>
         <div id="authFields">
             <input type="email" id="authEmail" placeholder="Email">
             <input type="password" id="authPassword" placeholder="Пароль">
             <button class="btn" id="authBtn">Войти</button>
         </div>
+        <div id="verifyBlock" class="hidden">
+            <p style="color:#f0f6fc;font-size:16px;">📧 Код отправлен на почту</p>
+            <div class="code-input-group">
+                <input type="text" id="verifyCode" maxlength="6" placeholder="123456">
+                <button class="btn" id="verifyBtn">✅</button>
+            </div>
+            <span class="resend-link" id="resendLink">Отправить снова</span>
+            <div id="verifyMsg" class="auth-msg"></div>
+        </div>
+        <div id="resetBlock" class="hidden">
+            <p style="color:#f0f6fc;font-size:16px;">🔑 Восстановление пароля</p>
+            <input type="password" id="newPassword" placeholder="Новый пароль">
+            <input type="password" id="confirmPassword" placeholder="Подтвердите">
+            <button class="btn" id="resetBtn">Сменить пароль</button>
+            <div id="resetMsg" class="auth-msg"></div>
+        </div>
         <div>
-            <span class="switch-link" id="authSwitch">Нет аккаунта? Зарегистрироваться</span>
+            <span class="switch-link" id="authSwitch">Нет аккаунта? Зарегистрироваться</span><br>
+            <span class="switch-link" id="forgotLink">Забыли пароль?</span>
         </div>
     </div>
 
-    <!-- РАБОЧАЯ ОБЛАСТЬ -->
+    <!-- ===== РАБОЧАЯ ОБЛАСТЬ ===== -->
     <div id="workspace" class="workspace">
         <div class="tabs">
             <div class="tab active" data-tab="projects">📁 Проекты</div>
@@ -530,49 +159,16 @@
                 <input type="text" id="newProjectName" placeholder="Название проекта">
                 <button class="btn" id="createProjectBtn">➕ Создать</button>
             </div>
-            <div class="project-list" id="projectListContent">
-                <div class="empty-state">У вас пока нет проектов</div>
-            </div>
+            <div class="project-list" id="projectListContent"><div class="empty-state">У вас пока нет проектов</div></div>
         </div>
         <div class="tab-content" id="tab-tools">
             <div class="tools-grid">
-                <div class="tool-card">
-                    <h3>🔐 Пароль</h3>
-                    <input type="number" id="passLength" value="16">
-                    <button class="btn" id="genPassBtn">Сгенерировать</button>
-                    <div class="output" id="passOutput">Нажмите</div>
-                </div>
-                <div class="tool-card">
-                    <h3>🧹 JSON</h3>
-                    <textarea id="jsonInput" placeholder='{"name":"DevLab"}'></textarea>
-                    <button class="btn" id="jsonFormatBtn">Форматировать</button>
-                    <div class="output" id="jsonOutput">Вставьте JSON</div>
-                </div>
-                <div class="tool-card">
-                    <h3>🔑 Хеши</h3>
-                    <input type="text" id="hashInput" placeholder="Текст">
-                    <select id="hashType"><option>MD5</option><option>SHA1</option><option selected>SHA256</option></select>
-                    <button class="btn" id="hashBtn">Хешировать</button>
-                    <div class="output" id="hashOutput">Нажмите</div>
-                </div>
-                <div class="tool-card">
-                    <h3>📦 Base64</h3>
-                    <textarea id="base64Input" placeholder="Текст"></textarea>
-                    <button class="btn" id="base64EncodeBtn">Закодировать</button>
-                    <button class="btn btn-secondary" id="base64DecodeBtn" style="margin-top:4px;">Раскодировать</button>
-                    <div class="output" id="base64Output">Вставьте текст</div>
-                </div>
-                <div class="tool-card">
-                    <h3>🔢 Системы счисления</h3>
-                    <input type="text" id="numInput" placeholder="Число" value="255">
-                    <button class="btn" id="convertNumBtn">Перевести</button>
-                    <div class="output" id="numOutput">DEC: 255<br>HEX: FF</div>
-                </div>
-                <div class="tool-card">
-                    <h3>🎲 Данные</h3>
-                    <button class="btn" id="fakeDataBtn">Сгенерировать</button>
-                    <div class="output" id="fakeDataOutput">Нажмите</div>
-                </div>
+                <div class="tool-card"><h3>🔐 Пароль</h3><input type="number" id="passLength" value="16"><button class="btn" id="genPassBtn">Сгенерировать</button><div class="output" id="passOutput">Нажмите</div></div>
+                <div class="tool-card"><h3>🧹 JSON</h3><textarea id="jsonInput" placeholder='{"name":"CodeForge"}'></textarea><button class="btn" id="jsonFormatBtn">Форматировать</button><div class="output" id="jsonOutput">Вставьте JSON</div></div>
+                <div class="tool-card"><h3>🔑 Хеши</h3><input type="text" id="hashInput" placeholder="Текст"><select id="hashType"><option>MD5</option><option>SHA1</option><option selected>SHA256</option></select><button class="btn" id="hashBtn">Хешировать</button><div class="output" id="hashOutput">Нажмите</div></div>
+                <div class="tool-card"><h3>📦 Base64</h3><textarea id="base64Input" placeholder="Текст"></textarea><button class="btn" id="base64EncodeBtn">Закодировать</button><button class="btn btn-secondary" id="base64DecodeBtn" style="margin-top:4px;">Раскодировать</button><div class="output" id="base64Output">Вставьте текст</div></div>
+                <div class="tool-card"><h3>🔢 Системы счисления</h3><input type="text" id="numInput" placeholder="Число" value="255"><button class="btn" id="convertNumBtn">Перевести</button><div class="output" id="numOutput">DEC: 255<br>HEX: FF</div></div>
+                <div class="tool-card"><h3>🎲 Данные</h3><button class="btn" id="fakeDataBtn">Сгенерировать</button><div class="output" id="fakeDataOutput">Нажмите</div></div>
             </div>
         </div>
         <div class="tab-content" id="tab-ide">
@@ -585,9 +181,7 @@
                             <button class="btn btn-secondary btn-small" id="newFolderBtn">📂</button>
                         </div>
                     </div>
-                    <div id="fileTreeContent">
-                        <div class="empty-state">Нет файлов</div>
-                    </div>
+                    <div id="fileTreeContent"><div class="empty-state">Нет файлов</div></div>
                 </div>
                 <div class="editor-area">
                     <div class="editor-header">
@@ -598,12 +192,8 @@
                             <button class="btn btn-danger btn-small" id="deleteFileBtn">🗑️ Удалить</button>
                         </div>
                     </div>
-                    <div class="editor-wrapper">
-                        <textarea id="codeEditor"></textarea>
-                    </div>
-                    <div class="output-console" id="outputConsole">
-                        <span style="color:#8b949e;">📟 Консоль вывода</span>
-                    </div>
+                    <div class="editor-wrapper"><textarea id="codeEditor"></textarea></div>
+                    <div class="output-console" id="outputConsole"><span style="color:#8b949e;">📟 Консоль вывода</span></div>
                 </div>
             </div>
         </div>
@@ -621,37 +211,42 @@
 
     <div class="toast" id="toast"></div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js">
+    </script>
     <script>
         // ============================================================
-        //  ХРАНИЛИЩЕ (без почты, для простоты)
+        //  0. EMAILJS — ОБНОВЛЁННЫЕ ДАННЫЕ
         // ============================================================
-        const STORAGE_KEY = 'devlab_users';
-        const SESSION_KEY = 'devlab_session';
+        const EMAILJS_CONFIG = {
+            publicKey: 'cLgXNw3hJJ3VACoLG',   // остался прежним
+            serviceID: 'service_hkmgdt9',      // НОВЫЙ Service ID
+            templateID: 'template_tgc8z1p'     // остался прежним
+        };
+        emailjs.init(EMAILJS_CONFIG.publicKey);
 
-        function getUsers() {
-            try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; } catch { return {}; }
-        }
+        // ============================================================
+        //  EMAIL ПОДДЕРЖКИ
+        // ============================================================
+        const SUPPORT_EMAIL = 'forgecode@yandex.ru';
 
+        // ============================================================
+        //  1. ХРАНИЛИЩЕ
+        // ============================================================
+        const STORAGE_KEY = 'codeforge_users';
+        const SESSION_KEY = 'codeforge_session';
+
+        function getUsers() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; } catch { return {}; } }
         function saveUsers(u) { localStorage.setItem(STORAGE_KEY, JSON.stringify(u)); }
-
         function userExists(e) { return !!getUsers()[e]; }
-
-        function createUser(e, p) {
-            const u = getUsers();
-            u[e] = { password: p, projects: {} };
-            saveUsers(u);
-        }
-
-        function validateUser(e, p) {
-            const u = getUsers();
-            return u[e] && u[e].password === p;
-        }
-
-        function getProjects(e) {
-            const u = getUsers();
-            return u[e]?.projects || {};
-        }
-
+        function createUser(e, p) { const u = getUsers(); u[e] = { password: p, verified: false, projects: {} };
+            saveUsers(u); }
+        function verifyUser(e) { const u = getUsers(); if (u[e]) { u[e].verified = true;
+                saveUsers(u); return true; } return false; }
+        function isUserVerified(e) { const u = getUsers(); return u[e]?.verified || false; }
+        function validateUser(e, p) { const u = getUsers(); return u[e] && u[e].password === p; }
+        function updatePassword(e, p) { const u = getUsers(); if (u[e]) { u[e].password = p;
+                saveUsers(u); return true; } return false; }
+        function getProjects(e) { const u = getUsers(); return u[e]?.projects || {}; }
         function getProjectData(e, name) {
             const u = getUsers();
             if (!u[e]?.projects) return null;
@@ -661,27 +256,89 @@
             }
             return u[e].projects[name] || null;
         }
-
         function saveProjectData(e, name, data) {
             const u = getUsers();
-            if (!u[e]) u[e] = { password: '', projects: {} };
+            if (!u[e]) u[e] = { password: '', verified: false, projects: {} };
             u[e].projects[name] = data;
             saveUsers(u);
         }
+        function deleteProject(e, n) { const u = getUsers(); if (u[e]?.projects) { delete u[e].projects[n];
+                saveUsers(u); } }
 
-        function deleteProject(e, n) {
-            const u = getUsers();
-            if (u[e]?.projects) { delete u[e].projects[n];
-                saveUsers(u); }
+        // ============================================================
+        //  2. EMAIL
+        // ============================================================
+        function generateCode() { return Math.floor(100000 + Math.random() * 900000).toString(); }
+
+        function sendVerificationCode(email, code) {
+            return emailjs.send(
+                EMAILJS_CONFIG.serviceID,
+                EMAILJS_CONFIG.templateID, {
+                    to_email: email,
+                    code: code,
+                    support_email: SUPPORT_EMAIL
+                }
+            );
         }
 
         // ============================================================
-        //  ЭЛЕМЕНТЫ
+        //  3. ЭЛЕМЕНТЫ
         // ============================================================
-        function $(id) { return document.getElementById(id); }
+        const $ = id => document.getElementById(id);
+        const authContainer = $('authContainer'),
+            authTitle = $('authTitle'),
+            authSubtitle = $('authSubtitle'),
+            authEmail = $('authEmail'),
+            authPassword = $('authPassword'),
+            authBtn = $('authBtn'),
+            authSwitch = $('authSwitch'),
+            forgotLink = $('forgotLink'),
+            authMsg = $('authMsg'),
+            authFields = $('authFields');
+        const verifyBlock = $('verifyBlock'),
+            verifyCode = $('verifyCode'),
+            verifyBtn = $('verifyBtn'),
+            verifyMsg = $('verifyMsg'),
+            resendLink = $('resendLink');
+        const resetBlock = $('resetBlock'),
+            newPassword = $('newPassword'),
+            confirmPassword = $('confirmPassword'),
+            resetBtn = $('resetBtn'),
+            resetMsg = $('resetMsg');
+        const workspace = $('workspace'),
+            header = $('header'),
+            userEmail = $('userEmail'),
+            logoutBtn = $('logoutBtn');
+        const newProjectName = $('newProjectName'),
+            createProjectBtn = $('createProjectBtn'),
+            projectListContent = $('projectListContent');
+        const editorProjectName = $('editorProjectName'),
+            saveEditorBtn = $('saveEditorBtn'),
+            codeEditor = $('codeEditor');
+        const fileTreeContent = $('fileTreeContent');
+        const modalOverlay = $('modalOverlay'),
+            modalTitle = $('modalTitle'),
+            modalInput = $('modalInput'),
+            modalConfirmBtn = $('modalConfirmBtn'),
+            modalCancelBtn = $('modalCancelBtn');
+        const outputConsole = $('outputConsole');
+        const currentFileLabel = $('currentFileLabel');
+        const runFileBtn = $('runFileBtn'),
+            saveFileBtn = $('saveFileBtn'),
+            deleteFileBtn = $('deleteFileBtn');
+        const newFileBtn = $('newFileBtn'),
+            newFolderBtn = $('newFolderBtn');
+
+        let currentUser = '',
+            currentProject = '',
+            currentFile = '',
+            editor = null,
+            fileTreeData = {},
+            isLogin = true,
+            currentCode = '';
 
         // ============================================================
-        //  ВКЛАДКИ
+        //  4. ВКЛАДКИ
         // ============================================================
         document.querySelectorAll('.tab').forEach(function(tab) {
             tab.addEventListener('click', function() {
@@ -694,160 +351,247 @@
         });
 
         // ============================================================
-        //  АВТОРИЗАЦИЯ
+        //  5. АВТОРИЗАЦИЯ
         // ============================================================
-        var isLogin = true;
-        var currentUser = '';
-        var currentProject = '';
-        var currentFile = '';
-        var editor = null;
-        var fileTreeData = {};
-
         function renderAuth() {
-            var authMsg = $('authMsg');
             authMsg.textContent = '';
             authMsg.className = 'auth-msg';
-            $('authFields').classList.remove('hidden');
+            verifyMsg.textContent = '';
+            verifyMsg.className = 'auth-msg';
+            resetMsg.textContent = '';
+            resetMsg.className = 'auth-msg';
+            verifyBlock.classList.add('hidden');
+            resetBlock.classList.add('hidden');
+            authFields.classList.remove('hidden');
+            forgotLink.style.display = 'inline-block';
             if (isLogin) {
-                $('authTitle').textContent = 'Вход';
-                $('authSubtitle').textContent = 'Войдите, чтобы получить доступ';
-                $('authBtn').textContent = 'Войти';
-                $('authSwitch').textContent = 'Нет аккаунта? Зарегистрироваться';
+                authTitle.textContent = 'Вход';
+                authSubtitle.textContent = 'Войдите, чтобы получить доступ к CodeForge';
+                authBtn.textContent = 'Войти';
+                authSwitch.textContent = 'Нет аккаунта? Зарегистрироваться';
+                forgotLink.style.display = 'inline-block';
             } else {
-                $('authTitle').textContent = 'Регистрация';
-                $('authSubtitle').textContent = 'Создайте аккаунт';
-                $('authBtn').textContent = 'Зарегистрироваться';
-                $('authSwitch').textContent = 'Уже есть аккаунт? Войти';
+                authTitle.textContent = 'Регистрация';
+                authSubtitle.textContent = 'Создайте аккаунт в CodeForge';
+                authBtn.textContent = 'Зарегистрироваться';
+                authSwitch.textContent = 'Уже есть аккаунт? Войти';
+                forgotLink.style.display = 'none';
             }
-            $('authEmail').value = '';
-            $('authPassword').value = '';
+            authEmail.value = '';
+            authPassword.value = '';
+            newPassword.value = '';
+            confirmPassword.value = '';
         }
 
-        $('authSwitch').addEventListener('click', function() {
-            isLogin = !isLogin;
-            renderAuth();
+        authSwitch.addEventListener('click', function() { isLogin = !isLogin;
+            renderAuth(); });
+        forgotLink.addEventListener('click', function() {
+            authFields.classList.add('hidden');
+            resetBlock.classList.remove('hidden');
+            authTitle.textContent = '🔑 Восстановление пароля';
+            authSubtitle.textContent = 'Введите новый пароль';
+            authMsg.textContent = '';
+            resetMsg.textContent = '';
         });
 
         // ============================================================
-        //  КНОПКА ВХОДА / РЕГИСТРАЦИИ (ГЛАВНОЕ!)
+        //  6. КНОПКА ВХОДА / РЕГИСТРАЦИИ
         // ============================================================
-        $('authBtn').addEventListener('click', function(e) {
+        authBtn.addEventListener('click', async function(e) {
             e.preventDefault();
-            var email = $('authEmail').value.trim();
-            var password = $('authPassword').value.trim();
+            var email = authEmail.value.trim();
+            var password = authPassword.value.trim();
 
-            if (!email || !password) {
-                $('authMsg').textContent = '❌ Заполните все поля';
-                $('authMsg').className = 'auth-msg error';
-                return;
-            }
-            if (!email.includes('@') || !email.includes('.')) {
-                $('authMsg').textContent = '❌ Введите корректный email';
-                $('authMsg').className = 'auth-msg error';
-                return;
-            }
-            if (password.length < 4) {
-                $('authMsg').textContent = '❌ Пароль должен быть не менее 4 символов';
-                $('authMsg').className = 'auth-msg error';
-                return;
-            }
+            if (!email || !password) { authMsg.textContent = '❌ Заполните все поля';
+                authMsg.className = 'auth-msg error'; return; }
+            if (!email.includes('@') || !email.includes('.')) { authMsg.textContent = '❌ Введите корректный email';
+                authMsg.className = 'auth-msg error'; return; }
+            if (password.length < 4) { authMsg.textContent = '❌ Пароль должен быть не менее 4 символов';
+                authMsg.className = 'auth-msg error'; return; }
 
             if (isLogin) {
-                if (!userExists(email)) {
-                    $('authMsg').textContent = '❌ Пользователь не найден';
-                    $('authMsg').className = 'auth-msg error';
-                    return;
-                }
-                if (!validateUser(email, password)) {
-                    $('authMsg').textContent = '❌ Неверный пароль';
-                    $('authMsg').className = 'auth-msg error';
+                if (!userExists(email)) { authMsg.textContent = '❌ Пользователь не найден';
+                    authMsg.className = 'auth-msg error'; return; }
+                if (!validateUser(email, password)) { authMsg.textContent = '❌ Неверный пароль';
+                    authMsg.className = 'auth-msg error'; return; }
+                if (!isUserVerified(email)) {
+                    authMsg.textContent = '⚠️ Почта не подтверждена. Код отправлен.';
+                    authMsg.className = 'auth-msg error';
+                    currentEmail = email;
+                    currentCode = generateCode();
+                    await sendVerificationCode(email, currentCode);
+                    showVerifyBlock(email);
                     return;
                 }
                 loginUser(email);
                 return;
             }
 
-            if (userExists(email)) {
-                $('authMsg').textContent = '❌ Пользователь уже существует';
-                $('authMsg').className = 'auth-msg error';
-                return;
-            }
+            if (userExists(email)) { authMsg.textContent = '❌ Пользователь уже существует';
+                authMsg.className = 'auth-msg error'; return; }
+
             createUser(email, password);
-            $('authMsg').textContent = '✅ Аккаунт создан! Теперь войдите.';
-            $('authMsg').className = 'auth-msg success';
+            currentEmail = email;
+            currentCode = generateCode();
+            try {
+                authBtn.disabled = true;
+                authBtn.textContent = '⏳ Отправка...';
+                await sendVerificationCode(email, currentCode);
+                authMsg.textContent = '✅ Код отправлен! Проверьте почту.';
+                authMsg.className = 'auth-msg success';
+                showVerifyBlock(email);
+            } catch (error) {
+                authMsg.textContent = '❌ Ошибка отправки. Попробуйте позже.';
+                authMsg.className = 'auth-msg error';
+                console.error(error);
+            } finally {
+                authBtn.disabled = false;
+                authBtn.textContent = isLogin ? 'Войти' : 'Зарегистрироваться';
+            }
+        });
+
+        // ============================================================
+        //  7. ПОДТВЕРЖДЕНИЕ КОДА
+        // ============================================================
+        function showVerifyBlock(email) {
+            authFields.classList.add('hidden');
+            verifyBlock.classList.remove('hidden');
+            verifyMsg.textContent = '';
+            verifyCode.value = '';
+            verifyCode.focus();
+        }
+
+        verifyBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            var code = verifyCode.value.trim();
+            if (!code) { verifyMsg.textContent = '❌ Введите код из письма';
+                verifyMsg.className = 'auth-msg error'; return; }
+            if (code === currentCode) {
+                if (verifyUser(currentEmail)) {
+                    verifyMsg.textContent = '✅ Почта подтверждена! Вход...';
+                    verifyMsg.className = 'auth-msg success';
+                    setTimeout(function() { loginUser(currentEmail); }, 1000);
+                }
+            } else {
+                verifyMsg.textContent = '❌ Неверный код. Попробуйте снова.';
+                verifyMsg.className = 'auth-msg error';
+                verifyCode.value = '';
+                verifyCode.focus();
+            }
+        });
+
+        verifyCode.addEventListener('keydown', function(e) { if (e.key === 'Enter') { e.preventDefault();
+                verifyBtn.click(); } });
+
+        resendLink.addEventListener('click', async function(e) {
+            e.preventDefault();
+            if (!currentEmail) return;
+            currentCode = generateCode();
+            try {
+                this.textContent = '⏳ Отправка...';
+                this.style.pointerEvents = 'none';
+                await sendVerificationCode(currentEmail, currentCode);
+                verifyMsg.textContent = '✅ Новый код отправлен!';
+                verifyMsg.className = 'auth-msg success';
+                setTimeout(function() { this.textContent = 'Отправить снова';
+                    this.style.pointerEvents = 'auto'; }.bind(this), 2000);
+            } catch (error) {
+                verifyMsg.textContent = '❌ Ошибка отправки';
+                verifyMsg.className = 'auth-msg error';
+                this.textContent = 'Отправить снова';
+                this.style.pointerEvents = 'auto';
+            }
+        });
+
+        // ============================================================
+        //  8. ВОССТАНОВЛЕНИЕ ПАРОЛЯ
+        // ============================================================
+        resetBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            var email = authEmail.value.trim();
+            var np = newPassword.value.trim();
+            var cp = confirmPassword.value.trim();
+
+            if (!email) { resetMsg.textContent = '❌ Введите email';
+                resetMsg.className = 'auth-msg error'; return; }
+            if (!userExists(email)) { resetMsg.textContent = '❌ Пользователь не найден';
+                resetMsg.className = 'auth-msg error'; return; }
+            if (!np || !cp) { resetMsg.textContent = '❌ Заполните все поля';
+                resetMsg.className = 'auth-msg error'; return; }
+            if (np.length < 4) { resetMsg.textContent = '❌ Пароль должен быть не менее 4 символов';
+                resetMsg.className = 'auth-msg error'; return; }
+            if (np !== cp) { resetMsg.textContent = '❌ Пароли не совпадают';
+                resetMsg.className = 'auth-msg error'; return; }
+
+            updatePassword(email, np);
+            resetMsg.textContent = '✅ Пароль изменён! Теперь войдите.';
+            resetMsg.className = 'auth-msg success';
+
             setTimeout(function() {
                 isLogin = true;
                 renderAuth();
-                $('authEmail').value = email;
-                $('authMsg').textContent = '✅ Аккаунт создан, войдите!';
-                $('authMsg').className = 'auth-msg success';
+                authEmail.value = email;
+                authMsg.textContent = '✅ Пароль изменён, войдите с новым.';
+                authMsg.className = 'auth-msg success';
             }, 1500);
         });
 
         // ============================================================
-        //  ВХОД / ВЫХОД
+        //  9. ВХОД / ВЫХОД
         // ============================================================
         function loginUser(email) {
             currentUser = email;
             localStorage.setItem(SESSION_KEY, email);
-            $('authContainer').style.display = 'none';
-            $('header').classList.add('active');
-            $('workspace').classList.add('active');
-            $('userEmail').textContent = email;
+            authContainer.style.display = 'none';
+            header.classList.add('active');
+            workspace.classList.add('active');
+            userEmail.textContent = email;
             loadProjects();
             initEditor();
-            showToast('👋 Добро пожаловать, ' + email.split('@')[0] + '!');
+            showToast('👋 Добро пожаловать в CodeForge, ' + email.split('@')[0] + '!');
         }
 
-        $('logoutBtn').addEventListener('click', function() {
+        logoutBtn.addEventListener('click', function() {
             localStorage.removeItem(SESSION_KEY);
-            $('header').classList.remove('active');
-            $('workspace').classList.remove('active');
-            $('authContainer').style.display = 'block';
+            header.classList.remove('active');
+            workspace.classList.remove('active');
+            authContainer.style.display = 'block';
             isLogin = true;
             renderAuth();
-            showToast('👋 Вы вышли');
+            showToast('👋 Вы вышли из CodeForge');
         });
 
         // ============================================================
-        //  ПРОЕКТЫ
+        //  10. ПРОЕКТЫ
         // ============================================================
         function loadProjects() {
             if (!currentUser) return;
             var projects = getProjects(currentUser);
             var names = Object.keys(projects);
             if (names.length === 0) {
-                $('projectListContent').innerHTML = '<div class="empty-state">У вас пока нет проектов</div>';
+                projectListContent.innerHTML = '<div class="empty-state">У вас пока нет проектов</div>';
                 return;
             }
             var html = '';
-            for (var i = 0; i < names.length; i++) {
-                var name = names[i];
-                html +=
-                    '<div class="item"><span class="name" data-project="' + name + '">' + name +
-                    '</span><div class="actions"><button class="btn btn-secondary btn-small" data-project="' + name +
-                    '" data-action="open">📝</button><button class="btn btn-danger btn-small" data-project="' + name +
-                    '" data-action="delete">🗑️</button></div></div>';
-            }
-            $('projectListContent').innerHTML = html;
+            names.forEach(function(name) {
+                html += '<div class="item"><span class="name" data-project="' + name + '">' + name +
+                    '</span><div class="actions"><button class="btn btn-secondary btn-small" data-project="' +
+                    name + '" data-action="open">📝</button><button class="btn btn-danger btn-small" data-project="' +
+                    name + '" data-action="delete">🗑️</button></div></div>';
+            });
+            projectListContent.innerHTML = html;
 
             document.querySelectorAll('#projectListContent .item .actions .btn').forEach(function(btn) {
                 btn.addEventListener('click', function(e) {
                     e.stopPropagation();
                     var project = this.dataset.project;
                     var action = this.dataset.action;
-                    if (action === 'open') {
-                        openProject(project);
-                    } else if (action === 'delete') {
-                        deleteProjectAction(project);
-                    }
+                    if (action === 'open') openProject(project);
+                    else if (action === 'delete') deleteProjectAction(project);
                 });
             });
-
             document.querySelectorAll('#projectListContent .item .name').forEach(function(el) {
-                el.addEventListener('click', function() {
-                    openProject(this.dataset.project);
-                });
+                el.addEventListener('click', function() { openProject(this.dataset.project); });
             });
         }
 
@@ -874,34 +618,33 @@
                 fileTreeData = {};
                 loadProjectFiles();
                 if (editor) editor.setValue('');
-                $('currentFileLabel').textContent = 'Не выбран';
+                currentFileLabel.textContent = 'Не выбран';
                 currentFile = '';
             }
             loadProjects();
             showToast('🗑️ Проект "' + name + '" удалён');
         }
 
-        $('createProjectBtn').addEventListener('click', function() {
-            var name = $('newProjectName').value.trim();
+        createProjectBtn.addEventListener('click', function() {
+            var name = newProjectName.value.trim();
             if (!name) { showToast('❌ Введите название'); return; }
             if (!currentUser) return;
             var projects = getProjects(currentUser);
             if (projects[name]) { showToast('❌ Проект уже существует'); return; }
-            saveProjectData(currentUser, name, { files: { 'main.js': '// Новый проект\nconsole.log("Hello, DevLab!");' } });
-            $('newProjectName').value = '';
+            saveProjectData(currentUser, name, { files: { 'main.js': '// Новый проект\nconsole.log("Hello, CodeForge!");' } });
+            newProjectName.value = '';
             loadProjects();
             openProject(name);
             showToast('✅ Проект "' + name + '" создан');
         });
 
         // ============================================================
-        //  ФАЙЛОВЫЙ МЕНЕДЖЕР
+        //  11. ФАЙЛОВЫЙ МЕНЕДЖЕР
         // ============================================================
         function loadProjectFiles() {
-            var container = $('fileTreeContent');
             var keys = Object.keys(fileTreeData);
             if (keys.length === 0) {
-                container.innerHTML = '<div class="empty-state">Нет файлов</div>';
+                fileTreeContent.innerHTML = '<div class="empty-state">Нет файлов</div>';
                 return;
             }
             var html = '';
@@ -928,19 +671,15 @@
             files.forEach(function(filePath) {
                 html += renderFileItem(filePath, filePath);
             });
-            container.innerHTML = html;
+            fileTreeContent.innerHTML = html;
 
             document.querySelectorAll('.file-item .name').forEach(function(el) {
-                el.addEventListener('click', function() {
-                    openFile(this.dataset.path);
-                });
+                el.addEventListener('click', function() { openFile(this.dataset.path); });
             });
-
             document.querySelectorAll('.file-item .actions .btn-danger').forEach(function(btn) {
                 btn.addEventListener('click', function(e) {
                     e.stopPropagation();
-                    var path = this.dataset.path;
-                    deleteFile(path);
+                    deleteFile(this.dataset.path);
                 });
             });
         }
@@ -955,16 +694,14 @@
         function openFile(path) {
             if (!fileTreeData[path]) { showToast('❌ Файл не найден'); return; }
             currentFile = path;
-            $('currentFileLabel').textContent = path;
+            currentFileLabel.textContent = path;
             if (editor) {
                 editor.setValue(fileTreeData[path]);
                 setEditorLanguage(path);
             }
             document.querySelectorAll('.file-item').forEach(function(el) { el.classList.remove('active'); });
             document.querySelectorAll('.file-item .name').forEach(function(el) {
-                if (el.dataset.path === path) {
-                    el.closest('.file-item').classList.add('active');
-                }
+                if (el.dataset.path === path) { el.closest('.file-item').classList.add('active'); }
             });
         }
 
@@ -973,7 +710,7 @@
             delete fileTreeData[path];
             if (currentFile === path) {
                 currentFile = '';
-                $('currentFileLabel').textContent = 'Не выбран';
+                currentFileLabel.textContent = 'Не выбран';
                 if (editor) editor.setValue('');
             }
             saveCurrentProject();
@@ -982,28 +719,26 @@
         }
 
         // ============================================================
-        //  СОЗДАНИЕ ФАЙЛОВ И ПАПОК
+        //  12. СОЗДАНИЕ ФАЙЛОВ/ПАПОК
         // ============================================================
         var modalType = 'file';
 
         function showModal(type) {
             modalType = type;
-            $('modalTitle').textContent = type === 'file' ? 'Создать файл' : 'Создать папку';
-            $('modalInput').value = '';
-            $('modalInput').placeholder = type === 'file' ? 'main.py' : 'папка';
-            $('modalOverlay').classList.add('active');
-            $('modalInput').focus();
+            modalTitle.textContent = type === 'file' ? 'Создать файл' : 'Создать папку';
+            modalInput.value = '';
+            modalInput.placeholder = type === 'file' ? 'main.py' : 'папка';
+            modalOverlay.classList.add('active');
+            modalInput.focus();
         }
 
-        $('newFileBtn').addEventListener('click', function() { showModal('file'); });
-        $('newFolderBtn').addEventListener('click', function() { showModal('folder'); });
+        newFileBtn.addEventListener('click', function() { showModal('file'); });
+        newFolderBtn.addEventListener('click', function() { showModal('folder'); });
 
-        $('modalCancelBtn').addEventListener('click', function() {
-            $('modalOverlay').classList.remove('active');
-        });
+        modalCancelBtn.addEventListener('click', function() { modalOverlay.classList.remove('active'); });
 
-        $('modalConfirmBtn').addEventListener('click', function() {
-            var name = $('modalInput').value.trim();
+        modalConfirmBtn.addEventListener('click', function() {
+            var name = modalInput.value.trim();
             if (!name) { showToast('❌ Введите имя'); return; }
             if (modalType === 'file') {
                 if (fileTreeData[name]) { showToast('❌ Файл уже существует'); return; }
@@ -1021,11 +756,11 @@
                 loadProjectFiles();
                 showToast('📂 Папка "' + name + '" создана');
             }
-            $('modalOverlay').classList.remove('active');
+            modalOverlay.classList.remove('active');
         });
 
         // ============================================================
-        //  СОХРАНЕНИЕ
+        //  13. СОХРАНЕНИЕ
         // ============================================================
         function saveCurrentProject() {
             if (!currentUser || !currentProject) return;
@@ -1033,7 +768,7 @@
             saveProjectData(currentUser, currentProject, data);
         }
 
-        $('saveFileBtn').addEventListener('click', function() {
+        saveFileBtn.addEventListener('click', function() {
             if (!currentFile) { showToast('❌ Откройте файл'); return; }
             if (!editor) return;
             fileTreeData[currentFile] = editor.getValue();
@@ -1042,11 +777,11 @@
         });
 
         // ============================================================
-        //  РЕДАКТОР
+        //  14. РЕДАКТОР
         // ============================================================
         function initEditor() {
             if (editor) { editor.toTextArea(); }
-            editor = CodeMirror.fromTextArea($('codeEditor'), {
+            editor = CodeMirror.fromTextArea(codeEditor, {
                 lineNumbers: true,
                 mode: 'javascript',
                 theme: 'default',
@@ -1079,88 +814,69 @@
         }
 
         // ============================================================
-        //  ЗАПУСК
+        //  15. ЗАПУСК
         // ============================================================
-        $('runFileBtn').addEventListener('click', function() {
+        runFileBtn.addEventListener('click', function() {
             if (!currentFile) { showToast('❌ Откройте файл'); return; }
             var content = editor ? editor.getValue() : fileTreeData[currentFile];
             var ext = currentFile.split('.').pop().toLowerCase();
 
             if (ext === 'html') {
                 var win = window.open('', '_blank');
-                if (win) {
-                    win.document.write(content);
-                    win.document.close();
-                } else {
-                    showToast('❌ Разрешите всплывающие окна');
-                }
+                if (win) { win.document.write(content);
+                    win.document.close(); } else showToast('❌ Разрешите всплывающие окна');
             } else if (ext === 'js') {
-                var consoleDiv = $('outputConsole');
-                var oldLog = console.log;
                 var logs = [];
-                console.log = function() {
-                    var args = Array.from(arguments);
-                    logs.push(args.join(' '));
-                    oldLog.apply(console, arguments);
-                };
-                try {
-                    var result = eval(content);
-                    if (result !== undefined) logs.push('→ ' + result);
-                } catch (e) {
-                    logs.push('❌ ' + e.message);
-                }
+                var oldLog = console.log;
+                console.log = function() { logs.push(Array.from(arguments).join(' '));
+                    oldLog.apply(console, arguments); };
+                try { var result = eval(content); if (result !== undefined) logs.push('→ ' + result); } catch (e) { logs
+                        .push('❌ ' + e.message); }
                 console.log = oldLog;
-                consoleDiv.innerHTML = logs.map(function(line) { return line; }).join('\n');
+                outputConsole.innerHTML = logs.join('\n');
                 showToast('✅ Код выполнен');
             } else if (ext === 'py') {
-                $('outputConsole').innerHTML = '🐍 Python не поддерживается в браузере. Установите локальный интерпретатор.';
+                outputConsole.innerHTML = '🐍 Python не поддерживается в браузере. Установите локальный интерпретатор.';
                 showToast('⚠️ Python выполняется только локально');
             } else {
-                $('outputConsole').innerHTML = '📄 Файл "' + currentFile + '" нельзя выполнить в браузере.';
+                outputConsole.innerHTML = '📄 Файл "' + currentFile + '" нельзя выполнить в браузере.';
                 showToast('⚠️ Запуск не поддерживается');
             }
         });
 
         // ============================================================
-        //  УДАЛЕНИЕ ФАЙЛА (кнопка в редакторе)
+        //  16. УДАЛЕНИЕ ФАЙЛА (кнопка в редакторе)
         // ============================================================
-        $('deleteFileBtn').addEventListener('click', function() {
+        deleteFileBtn.addEventListener('click', function() {
             if (!currentFile) { showToast('❌ Откройте файл'); return; }
             deleteFile(currentFile);
         });
 
         // ============================================================
-        //  ИНСТРУМЕНТЫ
+        //  17. ИНСТРУМЕНТЫ
         // ============================================================
         $('genPassBtn').addEventListener('click', function() {
             var len = parseInt($('passLength').value) || 16;
             var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=';
             var p = '';
-            for (var i = 0; i < len; i++) { p += chars[Math.floor(Math.random() * chars.length)]; }
+            for (var i = 0; i < len; i++) p += chars[Math.floor(Math.random() * chars.length)];
             $('passOutput').textContent = p;
             showToast('🔑 Пароль сгенерирован');
         });
 
         $('jsonFormatBtn').addEventListener('click', function() {
-            try {
-                var parsed = JSON.parse($('jsonInput').value);
+            try { var parsed = JSON.parse($('jsonInput').value);
                 $('jsonOutput').textContent = JSON.stringify(parsed, null, 2);
-                showToast('✅ JSON отформатирован');
-            } catch (e) {
-                $('jsonOutput').textContent = '❌ Ошибка: ' + e.message;
-                $('jsonOutput').className = 'output error';
-                showToast('❌ Неверный JSON');
-            }
+                showToast('✅ JSON отформатирован'); } catch (e) { $('jsonOutput').textContent = '❌ Ошибка: ' + e.message;
+                showToast('❌ Неверный JSON'); }
         });
 
         $('hashBtn').addEventListener('click', function() {
             var text = $('hashInput').value || 'Привет';
             var type = $('hashType').value;
             var hash = 0;
-            for (var i = 0; i < text.length; i++) {
-                hash = ((hash << 5) - hash) + text.charCodeAt(i);
-                hash = hash & hash;
-            }
+            for (var i = 0; i < text.length; i++) { hash = ((hash << 5) - hash) + text.charCodeAt(i);
+                hash = hash & hash; }
             var result = Math.abs(hash).toString(16);
             if (type === 'MD5') result = result.padStart(32, '0');
             else if (type === 'SHA1') result = result.padStart(40, '0');
@@ -1204,27 +920,25 @@
         });
 
         // ============================================================
-        //  TOAST
+        //  18. TOAST
         // ============================================================
         function showToast(message) {
             var toast = $('toast');
             toast.textContent = message;
             toast.classList.add('show');
             clearTimeout(toast._timeout);
-            toast._timeout = setTimeout(function() {
-                toast.classList.remove('show');
-            }, 2500);
+            toast._timeout = setTimeout(function() { toast.classList.remove('show'); }, 2500);
         }
 
         // ============================================================
-        //  ИНИЦИАЛИЗАЦИЯ
+        //  19. ИНИЦИАЛИЗАЦИЯ
         // ============================================================
         renderAuth();
         var savedSession = localStorage.getItem(SESSION_KEY);
-        if (savedSession && userExists(savedSession)) {
+        if (savedSession && userExists(savedSession) && isUserVerified(savedSession)) {
             loginUser(savedSession);
         }
-        console.log('⚡ DevLab Pro работает!');
+        console.log('⚡ CodeForge запущен с новым Service ID!');
     </script>
 </body>
 </html>
